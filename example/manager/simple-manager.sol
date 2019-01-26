@@ -1,11 +1,3 @@
-/* Manager interface */
-contract Manager {
-
-  function depositMade(address account, uint depositAmount) public ();
-  function withdrawalMade(address account, uint withdrawalAmount, bool sellAll, uint newBalance) public ();
-
-}
-
 /*
   Emit events to web3js, and pass trading instructions to DAMP
 */
@@ -33,5 +25,14 @@ contract SimpleManager is Manager {
     emit WithdrawalEvent(account, withdrawalAmount, sellAll, newBalance);
   }
 
+
+}
+
+/* Manager interface */
+contract Manager {
+
+  function depositMade(address account, uint depositAmount) public ();
+  function withdrawalMade(address account, uint withdrawalAmount, bool sellAll, uint newBalance) public ();
+  function currentWeiManaged() public (returns uint);
 
 }

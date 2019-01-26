@@ -1,0 +1,19 @@
+{
+  "name": "DAMP-simple-manager",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Hubert Kaluzny",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HubertKaluzny/Eth-DAMP"
+  },
+  "scripts": {
+    "dev-start": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "^4.16.4"
+  }
+}
