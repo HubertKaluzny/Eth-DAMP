@@ -6,8 +6,10 @@ contract DAMP {
   address public fee_account;               /* The address that takes fees */
   uint public fee_rate;                     /* The fee rate to charge */
 
-  function DAMP(address admin_,) {
+  function DAMP(address admin_, address fee_account_, uint fee_rate_) {
     admin = admin_;
+    fee_account = fee_account_;
+    fee_rate = fee_rate_;
   }
 
   mapping (address => Account) accounts;
@@ -44,6 +46,23 @@ contract DAMP {
     require(accounts[msg.sender].bal)
   }
 
+  /*
+    Allows manager address to control the account holdings
+      - Will overwrite previous manager.
+  */
+  function setAccountManager(address manager) public {
+    require(managers[manager] != 0);
+
+    accounts[msg.sender].manager = manager[manager];
+  }
+
+  /*
+    Removes manager from accounjt
+  */
+  function removeAccountManager() public {
+    accounts[msg.sender].manager = 0;
+  }
+
   /* ========== Managers ========== */
 
   /* Let manager contracts to register with the platform*/
@@ -55,17 +74,6 @@ contract DAMP {
   function unregisterManager() public {
     require(msg.sender == admin);
     manager[msg.sender] = 0;
-  }
-
-  function setAccountManager(address manager) public {
-    /* Only registered managers can be delegated*/
-    require(managers[manager] != 0);
-
-    accounts[msg.sender].manager = manager[manager];
-  }
-
-  function removeManager() public {
-    accounts[msg.sender].manager = 0;
   }
 
   /* ========== Exchanges ========== */
@@ -110,9 +118,6 @@ contract SafeMath {
     return c;
   }
 
-  function assert(bool assertion) internal {
-    if (!assertion) throw;
-  }
 }
 
 /* Exchange Interface - From EtherDelta */
