@@ -2,6 +2,14 @@ pragma solidity ^0.5.3;
 
 contract DAMP {
 
+  address public admin;                     /* The address that has admin privileges */
+  address public fee_account;               /* The address that takes fees */
+  uint public fee_rate;                     /* The fee rate to charge */
+
+  function DAMP(address admin_,) {
+    admin = admin_;
+  }
+
   mapping (address => Account) accounts;
   mapping (address => Manager) managers;
   mapping (address => Exchange) exchanges;
@@ -36,18 +44,16 @@ contract DAMP {
     require(accounts[msg.sender].bal)
   }
 
-  function sellAllHoldings() public {
-
-  }
-
   /* ========== Managers ========== */
 
   /* Let manager contracts to register with the platform*/
-  function registerManager() public {
-    managers[msg.sender] = Manager(msg.sender);
+  function registerManager(address manager) public {
+    require(msg.sender == admin);
+    managers[manager] = Manager(manager);
   }
 
   function unregisterManager() public {
+    require(msg.sender == admin);
     manager[msg.sender] = 0;
   }
 
@@ -75,6 +81,8 @@ contract DAMP {
   function order(address exchange, address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce) public {
     require(exchanges[exchange] != 0);
 
+    require()
+
   }
 
   function cancelOrder(address exchange, address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, uint8 v, bytes32 r, bytes32 s) public {
@@ -84,8 +92,39 @@ contract DAMP {
 
 }
 
+contract SafeMath {
+  function safeMul(uint a, uint b) internal returns (uint) {
+    uint c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+
+  function safeSub(uint a, uint b) internal returns (uint) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  function safeAdd(uint a, uint b) internal returns (uint) {
+    uint c = a + b;
+    assert(c>=a && c>=b);
+    return c;
+  }
+
+  function assert(bool assertion) internal {
+    if (!assertion) throw;
+  }
+}
+
 /* Exchange Interface - From EtherDelta */
 contract Exchange {
+
+    function deposit() payable;
+    function withdraw(uint amount);
+
+    function depositToken(address token, uint amount);
+    function withdrawToken(address token, uint amount);
+
+    function balanceOf(address token, address user) constant returns (uint);
 
     function order(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce) public ();
     function cancelOrder(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, uint8 v, bytes32 r, bytes32 s) public ();
@@ -99,6 +138,8 @@ contract Manager {
   function depositMade(address account, uint depositAmount) public ();
   function withdrawalMade(address account, uint withdrawalAmount, bool sellAll, uint newBalance) public ();
 
+  function getFeeAddress() public (returns address);
+  function getFeeRate() public (returns uint);
 }
 
 /* ERC20 Token Interface */
