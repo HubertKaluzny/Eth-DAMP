@@ -14,7 +14,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container">
-        <a class="navbar-brand" href="#">DAMP For Ethereum Manager</a>
+        <a class="navbar-brand" href="#">DAMP</a>
       </div>
     </nav>
 
@@ -23,24 +23,70 @@
         <div class="card-header">
           <h5 class="card-title">Dashboard</h5>
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">User Address</th>
-                  <th scope="col">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% users.forEach((balance, address) => { %>
-                  <tr>
-                    <td><%- address %> </td>
-                    <td><%- balance %> </td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
+        <div class="row">
+          <div class="col">
+
+            <div class="card-body">
+              <h5 class="card-title">Users</h5>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% for (let user of users) { %>
+                      <tr><td><%- user %> </td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+          <div class="col">
+
+            <div class="card-body">
+              <h5 class="card-title">Exchanges</h5>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% for (let exchange of exchanges) { %>
+                      <tr><td><%- exchange %> </td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="col">
+
+            <div class="card-body">
+              <h5 class="card-title">Managers</h5>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% for (let manager of managers) { %>
+                      <tr><td><%- manager %> </td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

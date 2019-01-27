@@ -1,0 +1,21 @@
+{
+  "name": "damp-webapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Hubert Kaluzny",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HubertKaluzny/Eth-DAMP"
+  },
+  "scripts": {
+    "dev-start": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.3.1",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "web3": "^1.0.0-beta.38"
+  }
+}

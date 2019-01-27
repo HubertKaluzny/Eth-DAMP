@@ -29,6 +29,20 @@ contract DAMP {
     mapping (address => uint) holdings;     /* Holdings, addr 0 = ETH */
   }
 
+  /* ========== web3 ========== */
+
+  event UserRegistration(
+    address indexed _account
+  );
+
+  event ExchangeRegistration(
+    address index _exchange_address
+  );
+
+  event ManagerRegistration(
+    address index _manager_address
+  );
+
   /* ========== Admin ========== */
   function setAdmin(address admin_) public {
     require(msg.sender == admin);
@@ -51,6 +65,8 @@ contract DAMP {
     accounts[msg.sender] = Account({owner: msg.sender, manager: Manager(0)});
     accounts[msg.sender].holdings[address(0)] = 0;
     registered[msg.sender] = true;
+
+    emit UserRegistration(msg.sender);
   }
 
   /* Deposit into account */
@@ -142,6 +158,8 @@ contract DAMP {
   /* Let manager contracts to register with the platform*/
   function registerManager(address manager) public {
     managers[manager] = Manager(manager);
+
+    emit ManagerRegistration(manager);
   }
 
   function unregisterManager() public {
@@ -153,6 +171,8 @@ contract DAMP {
   function registerExchange(address exchangeAddress) public {
     require(msg.sender == admin);
     availableExchanges.push(exchangeAddress);
+
+    emit ExchangeRegistration(exchangeAddress);
   }
 
   function unregisterExchange(address exchangeAddress) public {
