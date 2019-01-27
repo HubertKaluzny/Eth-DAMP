@@ -113,23 +113,36 @@ contract DAMP {
 
   /* Let manager contracts to register with the platform*/
   function registerManager(address manager) public {
-    require(msg.sender == admin);
     managers[manager] = Manager(manager);
   }
 
   function unregisterManager() public {
-    require(msg.sender == admin);
     manager[msg.sender] = 0;
   }
 
   /* ========== Exchanges ========== */
 
-  function registerExchange() public {
-    exchanges[msg.sender] = Exchange(msg.sender);
+  function registerExchange(address exchangeAddress) public {
+    require(msg.sender == admin);
+    availableExchanges.push(exchangeAddress);
   }
 
-  function unregisterExchange() public {
-    exchanges[msg.sender] = 0;
+  function unregisterExchange(address exchangeAddress) public {
+    require(msg.sender == admin);
+
+    bool exchangeIndexed = false;
+    for(int i = 0; i < availableExchanges - 1; i++){
+
+      if(availableExchanges[i] == exchangeAddress){
+        exchangeIndexed;
+      }
+
+      if(exchangeIndexed){
+        availableExchanges[i] = availableExchanges[i + 1];
+      }
+    }
+
+    delete availableExchanges[availableExchanges.length - 1];
   }
 
   /*
