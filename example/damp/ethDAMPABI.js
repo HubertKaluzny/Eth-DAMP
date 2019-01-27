@@ -1,4 +1,4 @@
-modules.export = [
+module.exports = [
 	{
 		"constant": false,
 		"inputs": [],
@@ -345,5 +345,41 @@ modules.export = [
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_account",
+				"type": "address"
+			}
+		],
+		"name": "UserRegistration",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_exchange_address",
+				"type": "address"
+			}
+		],
+		"name": "ExchangeRegistration",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_manager_address",
+				"type": "address"
+			}
+		],
+		"name": "ManagerRegistration",
+		"type": "event"
 	}
 ];

@@ -1,7 +1,7 @@
 const express = require('express');
 const Web3 = require('web3');
 
-const simpleDAMPAddress = process.argv[3];
+const simpleDAMPAddress = '0x21fc8f7bb45850f73e646143b0ca874f2530207b';
 const simpleDAMP = require('./ethDAMPABI.js');
 
 let web3 = new Web3(
@@ -34,6 +34,6 @@ contract.events.allEvents({}, (error, event) => {
   }
 });
 
-console.log("application listening on port 3000");
+console.log("application listening on port 3001");
 
 app.listen(3001);

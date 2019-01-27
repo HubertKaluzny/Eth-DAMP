@@ -36,11 +36,11 @@ contract DAMP {
   );
 
   event ExchangeRegistration(
-    address index _exchange_address
+    address indexed _exchange_address
   );
 
   event ManagerRegistration(
-    address index _manager_address
+    address indexed _manager_address
   );
 
   /* ========== Admin ========== */
