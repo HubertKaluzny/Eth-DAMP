@@ -14,7 +14,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container">
-        <a class="navbar-brand" href="#">Simple Ethereum DAMP Manager</a>
+        <a class="navbar-brand" href="#">DAMP For Ethereum Manager</a>
       </div>
     </nav>
 
@@ -24,7 +24,24 @@
           <h5 class="card-title">Dashboard</h5>
         </div>
         <div class="card-body">
-
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">User Address</th>
+                  <th scope="col">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach((address, balance) => { %>
+                  <tr>
+                    <td><%- address %> </td>
+                    <td><%- balance %> </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
