@@ -160,11 +160,21 @@ contract DAMP {
     Exchange exch = Exchange(exchange);
 
     acc.holdings[tokenGive] -= amountGive;
-    exch.depositToken(tokenGive, amountGive);
+
+    if(tokenGive == 0){
+      exch.deposit(amountGive);
+    }else{
+      exch.depositToken(tokenGive, amountGive);
+    }
 
     uint amountGet = exch.marketTrade(tokenGet, tokenGive, amountGive);
 
-    exch.withdrawToken(tokenGet, amountGet);
+    if(tokenGet == 0){
+      exch.withdraw(amountGet);
+    }else{
+      exch.withdrawToken(tokenGet, amountGet);
+    }
+
     acc.holdings[tokenGet] += amountGet;
   }
 
@@ -192,6 +202,11 @@ contract DAMP {
   }
 
   function validateToken(address token) public returns (bool valid) {
+    /* ETH = 0 */
+    if (token == 0){
+      return true;
+    }
+
     for(int i = 0; i < availableTokens.length; i++){
       if(availableTokens[i] == token){
         return true;
