@@ -8,9 +8,6 @@ contract Manager {
 
   function accountSubscribed(address account, uint bal) public;
   function accountUnsubscribed(address account) public;
-
-  function getFeeAddress() public returns (address);
-  function getFeeRate() public returns (uint);
 }
 
 /*
@@ -56,7 +53,6 @@ contract SimpleManager is Manager {
   function depositMade(address account, uint depositAmount) public {
     emit DepositEvent(account, depositAmount);
   }
-
 
   function withdrawalMade(address account, uint withdrawalAmount, uint newBalance) public {
     emit WithdrawalEvent(account, withdrawalAmount, newBalance);

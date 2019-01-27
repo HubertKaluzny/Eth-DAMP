@@ -13,6 +13,8 @@ contract DAMP {
   }
 
   mapping (address => Account) accounts;
+  mapping (address => bool) registered;
+
   mapping (address => Manager) managers;
 
   address[] public availableTokens;
@@ -45,8 +47,16 @@ contract DAMP {
 
   /* ========== Accounts ========== */
 
+  function register() public {
+    accounts[msg.sender] = Account({owner: msg.sender, manager: address(0)});
+    accounts[msg.sender].holdings[address(0)] = 0;
+    registered[msg.sender] = true;
+  }
+
   /* Deposit into account */
   function deposit() public payable {
+    require(registered[msg.sender]);
+
     Account storage acc = accounts[msg.sender];
 
     uint fee = msg.value * feeRate;
@@ -64,6 +74,8 @@ contract DAMP {
     otherwise it will just withdraw any ethBal from Account.
   */
   function withdraw(uint amount) public {
+    require(registered[msg.sender]);
+
     Account storage acc = accounts[msg.sender];
 
     require(amount > 0);
@@ -83,6 +95,8 @@ contract DAMP {
       - Will overwrite previous manager.
   */
   function setAccountManager(address manager) public {
+    require(registered[msg.sender]);
+
     require(managers[manager] != Manager(0));
     Manager mng = Manager(manager);
     accounts[msg.sender].manager = mng;
@@ -93,6 +107,8 @@ contract DAMP {
     Removes manager from accounjt
   */
   function removeAccountManager() public {
+    require(registered[msg.sender]);
+
     require(accounts[msg.sender].manager != Manager(0));
     Manager manager = Manager(accounts[msg.sender].manager);
     accounts[msg.sender].manager = Manager(0);
@@ -257,7 +273,7 @@ contract Manager {
   function depositMade(address account, uint depositAmount) public;
   function withdrawalMade(address account, uint withdrawalAmount, uint newBalance) public;
 
-  function accountSubscribed(address account, uint balance) public;
+  function accountSubscribed(address account, uint bal) public;
   function accountUnsubscribed(address account) public;
 
   function getFeeAddress() public returns (address);

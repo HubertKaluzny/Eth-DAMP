@@ -1,7 +1,7 @@
 const express = require('express');
 const Web3 = require('web3');
 
-const simpleManagerAddress = '0xee56becb6e6cb5e5352cd928ae5744a59d681e3c';
+const simpleManagerAddress = '0xecb505eb0efb5b5c866fd94c3f3b7add0c602504';
 const simpleManagerInterface = require('./simpleManagerABI.js');
 
 let web3 = new Web3(
@@ -22,6 +22,7 @@ app.get('/', (req, res) => {
 let contract = new web3.eth.Contract(simpleManagerInterface, simpleManagerAddress);
 
 contract.events.allEvents({}, (error, event) => {
+  console.log("event! = " + JSON.stringify(event));
   if(event.event == "DepositEvent"){
     let bal = users.get(event.returnValues._account);
     bal += event.returnValues._value;
@@ -31,7 +32,7 @@ contract.events.allEvents({}, (error, event) => {
     users.set(event.returnValues._account, event.returnValues._newBalance);
 
   }else if(event.event == "SubscribeEvent"){
-    users.set(event.returnValues._account, 0);
+    users.set(event.returnValues._account, event.returnValues._balance);
 
   }else if(event.event == "UnSubscribeEvent"){
     users.delete(event.returnValues._account);
