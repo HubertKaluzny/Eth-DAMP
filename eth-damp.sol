@@ -203,23 +203,6 @@ contract DAMP {
     availableTokens.push(token);
   }
 
-  function removeToken(address token) public {
-    require(msg.sender == admin);
-    require(availableTokens.length > 0);
-
-    if(availableTokens.length == 1){
-      delete availableTokens[0];
-    }
-
-    uint index = -1;
-    for(int i = 0; i < availableTokens.length - 1; i++){
-      if(availableTokens[i] == token){
-          index = i;
-      }
-    }
-
-  }
-
   function validateToken(address token) public returns (bool valid) {
     /* ETH = 0 */
     if (token == 0){
