@@ -3,13 +3,13 @@ pragma solidity ^0.5.3;
 contract DAMP {
 
   address public admin;                     /* The address that has admin privileges */
-  address public fee_account;               /* The address that takes fees */
-  uint public fee_rate;                     /* The fee rate to charge */
+  address public feeAccount;                /* The address that takes fees */
+  uint public feeRate;                      /* The fee rate to charge */
 
-  function DAMP(address admin_, address fee_account_, uint fee_rate_) {
+  function DAMP(address admin_, address feeAccount_, uint feeRate_) {
     admin = admin_;
-    fee_account = fee_account_;
-    fee_rate = fee_rate_;
+    feeAccount = feeAccount_;
+    feeRate = feeRate_;
   }
 
   mapping (address => Account) accounts;
@@ -27,15 +27,31 @@ contract DAMP {
     mapping (address => uint) holdings;       /* Holdings, addr 0 = ETH */
   }
 
+  /* ========== Admin ========== */
+  function setAdmin(address admin_) public {
+    require(msg.sender == admin);
+    admin = admin_;
+  }
+
+  function setFeeRate(uint feeRate_) public {
+    require(msg.sender == admin);
+    feeRate = feeRate_;
+  }
+
+  function setFeeAccount(address feeAccount_) public {
+    require(msg.sender == admin);
+    feeAccount = feeAccount_
+  }
+
   /* ========== Accounts ========== */
 
   /* Deposit into account */
   function deposit() public payable {
     Account acc = accounts[msg.sender];
 
-    uint fee = msg.value * fee_rate;
+    uint fee = msg.value * feeRate;
     holdings[0] = holdings[0] + (msg.value - fee);
-    admin.send(fee);
+    feeAccount.send(fee);
 
     /* Make the manager aware of deposit */
     if(acc.manager != 0){
