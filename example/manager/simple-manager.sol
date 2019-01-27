@@ -33,6 +33,6 @@ contract Manager {
 
   function depositMade(address account, uint depositAmount) public ();
   function withdrawalMade(address account, uint withdrawalAmount, bool sellAll, uint newBalance) public ();
-  function currentWeiManaged() public (returns uint);
+  function currentBalManaged() public (returns uint);
 
 }

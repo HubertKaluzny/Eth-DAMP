@@ -14,28 +14,33 @@ contract DAMP {
 
   mapping (address => Account) accounts;
   mapping (address => Manager) managers;
-  mapping (address => Exchange) exchanges;
+
+  address[] public availableTokens;
+  mapping (address => bool) tokenAddressesInUse;
+
+  address[] public availableExchanges;
 
   struct Account {
     address owner;        /* The owner of the account*/
     Manager manager;      /* Designated manager who can trade holdings */
 
-    uint bal; /* Ethereum holdings */
-
-    mapping (address => uint) holdings; /* Maps ERC20 tokens to balances */
+    mapping (address => uint) holdings;       /* Holdings, addr 0 = ETH */
   }
 
   /* ========== Accounts ========== */
 
   /* Deposit into account */
   function deposit() public payable {
-      Account acc = accounts[msg.sender];
-      acc.bal += msg.value;
+    Account acc = accounts[msg.sender];
 
-      /* Make the manager aware of deposit */
-      if(acc.manager != 0){
-        acc.manager.depositMade(msg.sender, msg.value);
-      }
+    uint fee = msg.value * fee_rate;
+    holdings[0] = holdings[0] + (msg.value - fee);
+    admin.send(fee);
+
+    /* Make the manager aware of deposit */
+    if(acc.manager != 0){
+      acc.manager.depositMade(msg.sender, msg.value);
+    }
   }
 
   /*
@@ -43,7 +48,18 @@ contract DAMP {
     otherwise it will just withdraw any ethBal from Account.
   */
   function withdraw(uint amount) public {
-    require(accounts[msg.sender].bal)
+    Account acc = accounts[msg.sender];
+
+    require(amount > 0);
+    require(amount <= acc.holdings[0]);
+
+    acc.holdings[0] = acc.holdings[0] - amount;
+    msg.sender.send(amount);
+
+    if(acc.manager != 0){
+      acc.manager.withdrawalMade(msg.sender, amount, sellAll, acc.holdings[0]);
+    }
+
   }
 
   /*
@@ -61,6 +77,26 @@ contract DAMP {
   */
   function removeAccountManager() public {
     accounts[msg.sender].manager = 0;
+  }
+
+  /* token address 0 is reserved for Ethereum itself */
+  function getHoldings(address token, address user) public returns (uint bal) {
+    return accounts[user].holdings[token];
+  }
+
+  function sellAllHoldings(address user){
+    require(
+      sender.msg == user
+      || sender.msg == accounts[user].manager)
+    );
+
+    for(uint i = 0; i < availableExchanges.length; i++){
+      Exchange exch = Exchange(availableExchanges[i]);
+      for(uint j = 0; j < availableTokens.length; j++){
+        uint bal = exch.balanceOf(availableTokens[j], user);
+        exch.marketTrade(0, availableTokens[j], bal);
+      }
+    }
   }
 
   /* ========== Managers ========== */
@@ -86,36 +122,79 @@ contract DAMP {
     exchanges[msg.sender] = 0;
   }
 
-  function order(address exchange, address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce) public {
-    require(exchanges[exchange] != 0);
+  /*
+    Executes a trade on the specified exchange
+      -> Verifies details
+      -> Deposits holdings
+      -> Executes trade on exchange
+      -> Withdraws holdings
+  */
+  function trade(address user, address exchange,  address tokenGet, address tokenGive, uint amountGive){
+    require(
+      sender.msg == user
+      || sender.msg == accounts[user].manager
+    );
 
-    require()
+    require(validateToken(tokenGet));
+    require(validateToken(tokenGive));
+
+    Account acc = accounts[user];
+
+    require(acc.holdings[tokenGive] > amountGive);
+
+    bool validExchange = false;
+
+    for(uint i = 0; i < availableExchanges.length; i++){
+      if(availableExchanges[i] == exchange){
+        validExchange = true;
+        break;
+      }
+    }
+
+    require(validExchange);
+
+    Exchange exch = Exchange(exchange);
+
+    acc.holdings[tokenGive] -= amountGive;
+    exch.depositToken(tokenGive, amountGive);
+
+    uint amountGet = exch.marketTrade(tokenGet, tokenGive, amountGive);
+
+    exch.withdrawToken(tokenGet, amountGet);
+    acc.holdings[tokenGet] += amountGet;
+  }
+
+  /* ========== Tokens ========== */
+  function addToken(address token) public {
+    require(msg.sender == admin);
+    availableTokens.push(token);
+  }
+
+  function removeToken(address token) public {
+    require(msg.sender == admin);
+    require(availableTokens.length > 0);
+
+    if(availableTokens.length == 1){
+      delete availableTokens[0];
+    }
+
+    uint index = -1;
+    for(int i = 0; i < availableTokens.length - 1; i++){
+      if(availableTokens[i] == token){
+          index = i;
+      }
+    }
 
   }
 
-  function cancelOrder(address exchange, address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, uint8 v, bytes32 r, bytes32 s) public {
-    require(exchanges[exchange] != 0);
+  function validateToken(address token) public returns (bool valid) {
+    for(int i = 0; i < availableTokens.length; i++){
+      if(availableTokens[i] == token){
+        return true;
+      }
+    }
 
-  }
-
-}
-
-contract SafeMath {
-  function safeMul(uint a, uint b) internal returns (uint) {
-    uint c = a * b;
-    assert(a == 0 || c / a == b);
-    return c;
-  }
-
-  function safeSub(uint a, uint b) internal returns (uint) {
-    assert(b <= a);
-    return a - b;
-  }
-
-  function safeAdd(uint a, uint b) internal returns (uint) {
-    uint c = a + b;
-    assert(c>=a && c>=b);
-    return c;
+    return false;
   }
 
 }
@@ -123,17 +202,15 @@ contract SafeMath {
 /* Exchange Interface - From EtherDelta */
 contract Exchange {
 
-    function deposit() payable;
-    function withdraw(uint amount);
+    function deposit() payable public;
+    function withdraw(uint amount) public;
 
-    function depositToken(address token, uint amount);
-    function withdrawToken(address token, uint amount);
+    function depositToken(address token, uint amount) public;
+    function withdrawToken(address token, uint amount) public;
 
-    function balanceOf(address token, address user) constant returns (uint);
+    function balanceOf(address token, address user) constant returns (uint bal);
 
-    function order(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce) public ();
-    function cancelOrder(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, uint8 v, bytes32 r, bytes32 s) public ();
-
+    function marketTrade(address tokenGet, address tokenGive, uint amountGive) public returns (uint amountGet);
 }
 
 
@@ -155,6 +232,6 @@ contract ERC20 {
     function transfer(address to, uint tokens) public returns (bool success);
     function approve(address spender, uint tokens) public returns (bool success);
     function transferFrom(address from, address to, uint tokens) public returns (bool success);
-    event Transfer(address indexed from, address indexed to, uint tokens);
+    event Transfer(address indexed from, address indexed to, -uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
 }
