@@ -3,7 +3,7 @@ pragma solidity ^0.5.1;
 contract DAMP {
 
   address public admin;                     /* The address that has admin privileges */
-  address payable public feeAccount;                /* The address that takes fees */
+  address payable public feeAccount;        /* The address that takes fees */
   uint public feeRate;                      /* The fee rate to charge */
 
   constructor (address admin_, address payable feeAccount_, uint feeRate_) public {
@@ -21,10 +21,10 @@ contract DAMP {
   address[] public availableExchanges;
 
   struct Account {
-    address payable owner;        /* The owner of the account*/
-    Manager manager;      /* Designated manager who can trade holdings */
+    address payable owner;                  /* The owner of the account*/
+    Manager manager;                        /* Designated manager who can trade holdings */
 
-    mapping (address => uint) holdings;       /* Holdings, addr 0 = ETH */
+    mapping (address => uint) holdings;     /* Holdings, addr 0 = ETH */
   }
 
   /* ========== Admin ========== */
@@ -100,7 +100,7 @@ contract DAMP {
   }
 
   /* token address 0 is reserved for Ethereum itself */
-  function getHoldings(address token, address user) public returns (uint bal) {
+  function getHoldings(address token, address user) public view returns (uint bal) {
     return accounts[user].holdings[token];
   }
 
@@ -219,7 +219,7 @@ contract DAMP {
     availableTokens.push(token);
   }
 
-  function validateToken(address token) public returns (bool valid) {
+  function validateToken(address token) public view returns (bool valid) {
     /* ETH = 0 */
     if (token == address(0)){
       return true;
