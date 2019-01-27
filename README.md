@@ -1,5 +1,11 @@
 ### Decentralised Asset Management Platform for Ethereum
 
-- Anyone can register an account
-- Anyone can register as a manager
-- Exchanges and tokens are added by the administrator as both require 3rd party contracts to work
+A smart contract written in Solidity that interfaces with users, decentralised exchanges and asset
+managers.
+
+Written during ICHack19, my first time writing smart contracts. Comes with 2 simple web apps that
+listen to emitted events. `simple-manager.sol` is an example of an implementation of a manager
+smart contract. Currently only supports spot market trades on decentralised exchanges, the DAMP
+charges the fee rate during deposit and currently doesn't support taking a manager's fee.
+
+//Hubert Kaluzny
