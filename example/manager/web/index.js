@@ -1,7 +1,7 @@
 const express = require('express');
 const Web3 = require('web3');
 
-const simpleManagerAddress = '0xecb505eb0efb5b5c866fd94c3f3b7add0c602504';
+const simpleManagerAddress = '0x3db0163714b9776858eab901b13cc2329886e94b';
 const simpleManagerInterface = require('./simpleManagerABI.js');
 
 let web3 = new Web3(
@@ -32,6 +32,9 @@ contract.events.allEvents({}, (error, event) => {
     users.set(event.returnValues._account, event.returnValues._newBalance);
 
   }else if(event.event == "SubscribeEvent"){
+    if(event.returnValues._balance == null){
+      event.returnValues._balance = 0;
+    }
     users.set(event.returnValues._account, event.returnValues._balance);
 
   }else if(event.event == "UnSubscribeEvent"){

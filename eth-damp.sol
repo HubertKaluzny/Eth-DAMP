@@ -48,7 +48,7 @@ contract DAMP {
   /* ========== Accounts ========== */
 
   function register() public {
-    accounts[msg.sender] = Account({owner: msg.sender, manager: address(0)});
+    accounts[msg.sender] = Account({owner: msg.sender, manager: Manager(0)});
     accounts[msg.sender].holdings[address(0)] = 0;
     registered[msg.sender] = true;
   }
@@ -57,15 +57,13 @@ contract DAMP {
   function deposit() public payable {
     require(registered[msg.sender]);
 
-    Account storage acc = accounts[msg.sender];
-
     uint fee = msg.value * feeRate;
-    acc.holdings[address(0)] = acc.holdings[address(0)] + (msg.value - fee);
+    accounts[msg.sender].holdings[address(0)] = accounts[msg.sender].holdings[address(0)] + (msg.value - fee);
     feeAccount.transfer(fee);
 
     /* Make the manager aware of deposit */
-    if(acc.manager != Manager(0)){
-      acc.manager.depositMade(msg.sender, msg.value);
+    if(accounts[msg.sender].manager != Manager(0)){
+      accounts[msg.sender].manager.depositMade(msg.sender, msg.value);
     }
   }
 
@@ -76,16 +74,14 @@ contract DAMP {
   function withdraw(uint amount) public {
     require(registered[msg.sender]);
 
-    Account storage acc = accounts[msg.sender];
-
     require(amount > 0);
-    require(amount <= acc.holdings[address(0)]);
+    require(amount <= accounts[msg.sender].holdings[address(0)]);
 
-    acc.holdings[address(0)] = acc.holdings[address(0)] - amount;
+    accounts[msg.sender].holdings[address(0)] = accounts[msg.sender].holdings[address(0)] - amount;
     msg.sender.transfer(amount);
 
-    if(acc.manager != Manager(0)){
-      acc.manager.withdrawalMade(msg.sender, amount, acc.holdings[address(0)]);
+    if(accounts[msg.sender].manager != Manager(0)){
+      accounts[msg.sender].manager.withdrawalMade(msg.sender, amount, accounts[msg.sender].holdings[address(0)]);
     }
 
   }
