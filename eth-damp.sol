@@ -88,19 +88,25 @@ contract DAMP {
     return accounts[user].holdings[token];
   }
 
-  function sellAllHoldings(address user){
+  function sellAllHoldings(address user) public {
     require(
       sender.msg == user
       || sender.msg == accounts[user].manager)
     );
 
-    for(uint i = 0; i < availableExchanges.length; i++){
-      Exchange exch = Exchange(availableExchanges[i]);
-      for(uint j = 0; j < availableTokens.length; j++){
-        uint bal = exch.balanceOf(availableTokens[j], user);
-        exch.marketTrade(0, availableTokens[j], bal);
+    Account acc = accounts[user];
+
+    /* The first exchange added should have large trading volumes */
+    Exchange exchange = Exchange(availableExchanges[0]);
+
+    /* Iterate through all available tokens and sell if any are held */
+    for(int i = 0; i < availableTokens; i++){
+      uint bal = acc.holdings[availableTokens[i]];
+      if(bal > 0){
+        exchange.marketTrade(0, availableTokens[i], bal);
       }
     }
+
   }
 
   /* ========== Managers ========== */
