@@ -1,12 +1,12 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.1;
 
 contract DAMP {
 
   address public admin;                     /* The address that has admin privileges */
-  address public feeAccount;                /* The address that takes fees */
+  address payable public feeAccount;                /* The address that takes fees */
   uint public feeRate;                      /* The fee rate to charge */
 
-  function DAMP(address admin_, address feeAccount_, uint feeRate_) {
+  constructor (address admin_, address payable feeAccount_, uint feeRate_) public {
     admin = admin_;
     feeAccount = feeAccount_;
     feeRate = feeRate_;
@@ -21,7 +21,7 @@ contract DAMP {
   address[] public availableExchanges;
 
   struct Account {
-    address owner;        /* The owner of the account*/
+    address payable owner;        /* The owner of the account*/
     Manager manager;      /* Designated manager who can trade holdings */
 
     mapping (address => uint) holdings;       /* Holdings, addr 0 = ETH */
@@ -38,23 +38,23 @@ contract DAMP {
     feeRate = feeRate_;
   }
 
-  function setFeeAccount(address feeAccount_) public {
+  function setFeeAccount(address payable feeAccount_) public {
     require(msg.sender == admin);
-    feeAccount = feeAccount_
+    feeAccount = feeAccount_;
   }
 
   /* ========== Accounts ========== */
 
   /* Deposit into account */
   function deposit() public payable {
-    Account acc = accounts[msg.sender];
+    Account storage acc = accounts[msg.sender];
 
     uint fee = msg.value * feeRate;
-    holdings[0] = holdings[0] + (msg.value - fee);
-    feeAccount.send(fee);
+    acc.holdings[address(0)] = acc.holdings[address(0)] + (msg.value - fee);
+    feeAccount.transfer(fee);
 
     /* Make the manager aware of deposit */
-    if(acc.manager != 0){
+    if(acc.manager != Manager(0)){
       acc.manager.depositMade(msg.sender, msg.value);
     }
   }
@@ -64,16 +64,16 @@ contract DAMP {
     otherwise it will just withdraw any ethBal from Account.
   */
   function withdraw(uint amount) public {
-    Account acc = accounts[msg.sender];
+    Account storage acc = accounts[msg.sender];
 
     require(amount > 0);
-    require(amount <= acc.holdings[0]);
+    require(amount <= acc.holdings[address(0)]);
 
-    acc.holdings[0] = acc.holdings[0] - amount;
-    msg.sender.send(amount);
+    acc.holdings[address(0)] = acc.holdings[address(0)] - amount;
+    msg.sender.transfer(amount);
 
-    if(acc.manager != 0){
-      acc.manager.withdrawalMade(msg.sender, amount, sellAll, acc.holdings[0]);
+    if(acc.manager != Manager(0)){
+      acc.manager.withdrawalMade(msg.sender, amount, acc.holdings[address(0)]);
     }
 
   }
@@ -83,7 +83,7 @@ contract DAMP {
       - Will overwrite previous manager.
   */
   function setAccountManager(address manager) public {
-    require(managers[manager] != 0);
+    require(managers[manager] != Manager(0));
     Manager mng = Manager(manager);
     accounts[msg.sender].manager = mng;
     mng.accountSubscribed(msg.sender);
@@ -93,9 +93,9 @@ contract DAMP {
     Removes manager from accounjt
   */
   function removeAccountManager() public {
-    require(accounts[msg.sender].manager != 0);
+    require(accounts[msg.sender].manager != Manager(0));
     Manager manager = Manager(accounts[msg.sender].manager);
-    accounts[msg.sender].manager = 0;
+    accounts[msg.sender].manager = Manager(0);
     manager.accountUnsubscribed(msg.sender);
   }
 
@@ -106,20 +106,20 @@ contract DAMP {
 
   function sellAllHoldings(address user) public {
     require(
-      sender.msg == user
-      || sender.msg == accounts[user].manager)
+      msg.sender == user
+      || msg.sender == address(accounts[user].manager)
     );
 
-    Account acc = accounts[user];
+    Account storage acc = accounts[user];
 
     /* The first exchange added should have large trading volumes */
     Exchange exchange = Exchange(availableExchanges[0]);
 
     /* Iterate through all available tokens and sell if any are held */
-    for(int i = 0; i < availableTokens; i++){
+    for(uint i = 0; i < availableTokens.length; i++){
       uint bal = acc.holdings[availableTokens[i]];
       if(bal > 0){
-        exchange.marketTrade(0, availableTokens[i], bal);
+        exchange.marketTrade(address(0), availableTokens[i], bal);
       }
     }
 
@@ -133,7 +133,7 @@ contract DAMP {
   }
 
   function unregisterManager() public {
-    manager[msg.sender] = 0;
+    managers[msg.sender] = Manager(0);
   }
 
   /* ========== Exchanges ========== */
@@ -147,7 +147,7 @@ contract DAMP {
     require(msg.sender == admin);
 
     bool exchangeIndexed = false;
-    for(int i = 0; i < availableExchanges - 1; i++){
+    for(uint i = 0; i < availableExchanges.length - 1; i++){
 
       if(availableExchanges[i] == exchangeAddress){
         exchangeIndexed;
@@ -168,16 +168,16 @@ contract DAMP {
       -> Executes trade on exchange
       -> Withdraws holdings
   */
-  function trade(address user, address exchange,  address tokenGet, address tokenGive, uint amountGive){
+  function trade(address user, address payable exchange,  address tokenGet, address tokenGive, uint amountGive) public {
     require(
-      sender.msg == user
-      || sender.msg == accounts[user].manager
+      msg.sender == user
+      || msg.sender == address(accounts[user].manager)
     );
 
     require(validateToken(tokenGet));
     require(validateToken(tokenGive));
 
-    Account acc = accounts[user];
+    Account storage acc = accounts[user];
 
     require(acc.holdings[tokenGive] > amountGive);
 
@@ -196,15 +196,15 @@ contract DAMP {
 
     acc.holdings[tokenGive] -= amountGive;
 
-    if(tokenGive == 0){
-      exch.deposit(amountGive);
+    if(tokenGive == address(0)){
+      exchange.transfer(amountGive);
     }else{
       exch.depositToken(tokenGive, amountGive);
     }
 
     uint amountGet = exch.marketTrade(tokenGet, tokenGive, amountGive);
 
-    if(tokenGet == 0){
+    if(tokenGet == address(0)){
       exch.withdraw(amountGet);
     }else{
       exch.withdrawToken(tokenGet, amountGet);
@@ -221,11 +221,11 @@ contract DAMP {
 
   function validateToken(address token) public returns (bool valid) {
     /* ETH = 0 */
-    if (token == 0){
+    if (token == address(0)){
       return true;
     }
 
-    for(int i = 0; i < availableTokens.length; i++){
+    for(uint i = 0; i < availableTokens.length; i++){
       if(availableTokens[i] == token){
         return true;
       }
@@ -245,7 +245,7 @@ contract Exchange {
     function depositToken(address token, uint amount) public;
     function withdrawToken(address token, uint amount) public;
 
-    function balanceOf(address token, address user) constant returns (uint bal);
+    function balanceOf(address token, address user) public view returns (uint bal);
 
     function marketTrade(address tokenGet, address tokenGive, uint amountGive) public returns (uint amountGet);
 }
@@ -254,24 +254,12 @@ contract Exchange {
 /* Manager interface */
 contract Manager {
 
-  function depositMade(address account, uint depositAmount) public ();
-  function withdrawalMade(address account, uint withdrawalAmount, bool sellAll, uint newBalance) public ();
+  function depositMade(address account, uint depositAmount) public;
+  function withdrawalMade(address account, uint withdrawalAmount, uint newBalance) public;
 
-  function accountSubscribed(address account);
-  function accountUnsubscribed(address account);
+  function accountSubscribed(address account) public;
+  function accountUnsubscribed(address account) public;
 
-  function getFeeAddress() public (returns address);
-  function getFeeRate() public (returns uint);
-}
-
-/* ERC20 Token Interface */
-contract ERC20 {
-    function totalSupply() public constant returns (uint);
-    function balanceOf(address tokenOwner) public constant returns (uint balance);
-    function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
-    function transfer(address to, uint tokens) public returns (bool success);
-    function approve(address spender, uint tokens) public returns (bool success);
-    function transferFrom(address from, address to, uint tokens) public returns (bool success);
-    event Transfer(address indexed from, address indexed to, -uint tokens);
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
+  function getFeeAddress() public returns (address);
+  function getFeeRate() public returns (uint);
 }
