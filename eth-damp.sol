@@ -68,15 +68,19 @@ contract DAMP {
   */
   function setAccountManager(address manager) public {
     require(managers[manager] != 0);
-
-    accounts[msg.sender].manager = manager[manager];
+    Manager mng = Manager(manager);
+    accounts[msg.sender].manager = mng;
+    mng.accountSubscribed(msg.sender);
   }
 
   /*
     Removes manager from accounjt
   */
   function removeAccountManager() public {
+    require(accounts[msg.sender].manager != 0);
+    Manager manager = Manager(accounts[msg.sender].manager);
     accounts[msg.sender].manager = 0;
+    manager.accountUnsubscribed(msg.sender);
   }
 
   /* token address 0 is reserved for Ethereum itself */
@@ -219,6 +223,9 @@ contract Manager {
 
   function depositMade(address account, uint depositAmount) public ();
   function withdrawalMade(address account, uint withdrawalAmount, bool sellAll, uint newBalance) public ();
+
+  function accountSubscribed(address account);
+  function accountUnsubscribed(address account);
 
   function getFeeAddress() public (returns address);
   function getFeeRate() public (returns uint);
