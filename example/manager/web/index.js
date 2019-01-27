@@ -1,7 +1,7 @@
 const express = require('express');
 const Web3 = require('web3');
 
-const simpleManagerAddress = '0x71cb83f5d3c25d814aca689134013c771bfabea5';
+const simpleManagerAddress = '0xee56becb6e6cb5e5352cd928ae5744a59d681e3c';
 const simpleManagerInterface = require('./simpleManagerABI.js');
 
 let web3 = new Web3(

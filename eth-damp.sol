@@ -86,7 +86,7 @@ contract DAMP {
     require(managers[manager] != Manager(0));
     Manager mng = Manager(manager);
     accounts[msg.sender].manager = mng;
-    mng.accountSubscribed(msg.sender);
+    mng.accountSubscribed(msg.sender, accounts[msg.sender].holdings[address(0)]);
   }
 
   /*
@@ -257,7 +257,7 @@ contract Manager {
   function depositMade(address account, uint depositAmount) public;
   function withdrawalMade(address account, uint withdrawalAmount, uint newBalance) public;
 
-  function accountSubscribed(address account) public;
+  function accountSubscribed(address account, uint balance) public;
   function accountUnsubscribed(address account) public;
 
   function getFeeAddress() public returns (address);

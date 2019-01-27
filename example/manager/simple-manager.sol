@@ -6,7 +6,7 @@ contract Manager {
   function depositMade(address account, uint depositAmount) public;
   function withdrawalMade(address account, uint withdrawalAmount, uint newBalance) public;
 
-  function accountSubscribed(address account) public;
+  function accountSubscribed(address account, uint bal) public;
   function accountUnsubscribed(address account) public;
 
   function getFeeAddress() public returns (address);
@@ -45,7 +45,8 @@ contract SimpleManager is Manager {
   );
 
   event SubscribeEvent(
-    address indexed _account
+    address indexed _account,
+    uint _balance
   );
 
   event UnSubscribeEvent(
@@ -61,12 +62,12 @@ contract SimpleManager is Manager {
     emit WithdrawalEvent(account, withdrawalAmount, newBalance);
   }
 
-  function accountSubscribed(address account) public {
-    emit SubscribeEvent(account);
+  function accountSubscribed(address account, uint balance) public {
+    emit SubscribeEvent(account, balance);
   }
 
   function accountUnsubscribed(address account) public {
-    emit SubscribeEvent(account);
+    emit UnSubscribeEvent(account);
   }
 }
 
