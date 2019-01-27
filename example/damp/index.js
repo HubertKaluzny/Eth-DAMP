@@ -1,7 +1,7 @@
 const express = require('express');
 const Web3 = require('web3');
 
-const simpleDAMPAddress = '0x31fcaf0b09ed4f49b2748c6e6d5ec3921cd96571';
+const simpleDAMPAddress = process.argv[3];
 const simpleDAMP = require('./ethDAMPABI.js');
 
 let web3 = new Web3(
